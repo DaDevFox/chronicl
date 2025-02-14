@@ -1,0 +1,11 @@
+commit_types:
+  - key: ICM
+    description: initial commit
+  - key: FEAT
+    description: code changed; semver MAJOR
+  - key: FIX
+    description: code changed; semver PATCH
+  - key: REF
+    description: no code changes; refactorings performed
+  - key: CFG
+    description: code changed; not semver MAJOR or MINOR-worthy

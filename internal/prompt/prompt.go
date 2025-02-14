@@ -1,6 +1,7 @@
 package prompt
 
 import (
+	"chronicl/internal/config"
 	"errors"
 	"fmt"
 	"os"
@@ -22,9 +23,18 @@ func Check(err error) {
 }
 
 // GetUserInput prompts for commit type, scope, and message
-func GetUserInput(commitTypes, scopes []string) (string, string, string) {
-	commitType, err := prompt.New().Ask("Select commit type:").Choose(commitTypes)
+func GetUserInput(commitTypes []config.CommitType, scopes []string) (string, string, string) {
+	display := make([]string, 0)
+	dispToKeyMap := make(map[string]string)
+	for _, obj := range commitTypes {
+		str := obj.Key + " | " + obj.Description
+		display = append(display, str)
+		dispToKeyMap[str] = obj.Key
+	}
+
+	commitType, err := prompt.New().Ask("Select commit type:").Choose(display)
 	Check(err)
+	commitType = dispToKeyMap[commitType]
 
 	// commitType := goprompter.Choose("Select commit type:", commitTypes)
 	if commitType == "" {

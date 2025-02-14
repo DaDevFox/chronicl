@@ -35,6 +35,8 @@ var RootCmd = &cobra.Command{
 				fmt.Println("Commit aborted.")
 				return
 			}
+		} else {
+			fmt.Println("Autocomitting... (turn this off in your chronicl config)")
 		}
 
 		if err := git.Commit(commitMsg); err != nil {
