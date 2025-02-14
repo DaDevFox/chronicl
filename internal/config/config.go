@@ -1,7 +1,6 @@
 package config
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 )
@@ -15,11 +14,11 @@ type Config struct {
 
 // LoadConfig tries to read config from multiple sources
 func LoadConfig() (*Config, error) {
-	var config Config
+	// var config Config
 	paths := []string{
 		filepath.Join(os.Getenv("HOME"), ".rgrc"), // YAML default
 		filepath.Join(os.Getenv("HOME"), ".rgrc.toml"),
-		filepath.Join(os.Getenv("HOME"), ".rgrc.textproto"),
+		// filepath.Join(os.Getenv("HOME"), ".rgrc.textproto"),
 	}
 
 	for _, path := range paths {
@@ -29,8 +28,8 @@ func LoadConfig() (*Config, error) {
 				return LoadYAML(path)
 			case ".toml":
 				return LoadTOML(path)
-			case ".textproto":
-				return LoadTextProto(path)
+				// case ".textproto":
+				// 	return LoadTextProto(path)
 			}
 		}
 	}
@@ -42,4 +41,3 @@ func LoadConfig() (*Config, error) {
 		AutoCommit:  false,
 	}, nil
 }
-
