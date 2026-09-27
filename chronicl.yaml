@@ -42,6 +42,9 @@ commit_annotations:
       description: no annotation
       hint_format: capability was usable only internally
   FIX:
+    - key: f
+      description: describe what new functionality is, which [f]ixes a bug
+      hint_format: "now {scope} will {message}, fixing a bug"
     - key: b
       description: describe what was wrong (the [b]ug)
       hint_format: "before this, {scope} would {message}; a mistake/incorrect"
