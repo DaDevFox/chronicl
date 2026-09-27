@@ -15,6 +15,7 @@ import (
 
 // TODO: use working buffer (up to 3 old messages? config opt) for resumption after accidental cancels
 // TODO: vi keybindings
+// TODO: detect .git/.jj first if that prefix to command detected (see also: use binary application image instead of shell exec if prefixes for a shortlist of binaries are detected)
 
 // RootCmd is the main CLI command
 var RootCmd = &cobra.Command{
