@@ -1,10 +1,9 @@
 module chronicl
 
-go 1.21.0
-
-toolchain go1.23.3
+go 1.25.3
 
 require (
+	github.com/DaDevFox/hof v0.0.0-20260904062520-59fc1dec2349
 	github.com/cqroot/prompt v0.9.4
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/spf13/cobra v1.8.1

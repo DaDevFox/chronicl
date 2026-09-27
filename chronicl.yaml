@@ -9,3 +9,16 @@ commit_types:
     description: no code changes; refactorings performed
   - key: CFG
     description: code changed; not semver MAJOR or MINOR-worthy
+scopes:
+- key: hi
+  description: hello
+- key: hello
+  description: hehehi
+commit_annotations:
+  FIX:
+    - key: b
+      description: describe what was wrong (the [b]ug)
+    - key: d
+      description: describe what how it was fixed (what you [d]id)
+pad_commit_type: true
+pad_character: "_"

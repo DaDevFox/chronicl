@@ -2,17 +2,20 @@ package cmd
 
 import (
 	"fmt"
+	"os/exec"
 
 	"chronicl/internal/config"
 	"chronicl/internal/git"
+	"chronicl/internal/message"
 	"chronicl/internal/prompt"
+
 	"github.com/spf13/cobra"
 )
 
 // RootCmd is the main CLI command
 var RootCmd = &cobra.Command{
-	Use:   "rgrc",
-	Short: "rgrc - Fast and secure commit tool",
+	Use:   "chronicl",
+	Short: "chronicl commit/vcs analysis tool",
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg, err := config.LoadConfig()
 		if err != nil {
@@ -20,13 +23,16 @@ var RootCmd = &cobra.Command{
 			return
 		}
 
-		commitType, scope, message := prompt.GetUserInput(cfg.CommitTypes, cfg.Scopes)
-		if commitType == "" || message == "" {
+		commitType, scope, commitAnnotations, scopeAnotations, messageText := prompt.GetUserInputV2(cfg)
+		if commitType == "" || messageText == "" {
 			fmt.Println("Commit aborted.")
 			return
 		}
 
-		commitMsg := fmt.Sprintf("%s(%s): %s", commitType, scope, message)
+		commitMsg, err := message.Serialize(commitType, scope, commitAnnotations, scopeAnotations, messageText, cfg)
+		if err != nil {
+			fmt.Errorf("invalid message\n")
+		}
 		fmt.Println("\nGenerated commit message:", commitMsg)
 
 		if !cfg.AutoCommit {
@@ -36,13 +42,21 @@ var RootCmd = &cobra.Command{
 				return
 			}
 		} else {
-			fmt.Println("Autocomitting... (turn this off in your chronicl config)")
+			fmt.Println("Autocomitting... (turn this off in your chronicl config if undesired)")
 		}
 
-		if err := git.Commit(commitMsg); err != nil {
-			fmt.Println("Git commit failed:", err)
+		if cfg.CommitCommandFormat != "" {
+			if err := git.Commit(commitMsg); err != nil {
+				fmt.Printf("Git commit failed:%s\n", err)
+			}
+			// TODO: security! sanitize for multiple %s or other specifiers
 		} else {
-			fmt.Println("Commit successful!")
+			out, err := exec.Command(fmt.Sprintf(cfg.CommitCommandFormat, messageText)).Output()
+			if err != nil {
+				fmt.Printf("Commit failed: %w\n", err)
+			} else {
+				fmt.Printf("success\n%s", out)
+			}
 		}
 	},
 }
