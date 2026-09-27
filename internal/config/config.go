@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 )
@@ -34,8 +35,9 @@ func LoadConfig() (*Config, error) {
 	// var config Config
 	dir, _ := os.Getwd()
 	paths := []string{
-		os.Getenv("HOME"),
 		dir,
+		os.Getenv("HOME"),
+		path.Join(os.Getenv("HOME"), ".config/chronicl"),
 	}
 
 	for _, path := range paths {
