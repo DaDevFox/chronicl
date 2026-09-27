@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os/exec"
+	"strings"
 
 	"chronicl/internal/config"
 	"chronicl/internal/git"
@@ -11,6 +12,9 @@ import (
 
 	"github.com/spf13/cobra"
 )
+
+// TODO: use working buffer (up to 3 old messages? config opt) for resumption after accidental cancels
+// TODO: vi keybindings
 
 // RootCmd is the main CLI command
 var RootCmd = &cobra.Command{
@@ -49,9 +53,9 @@ var RootCmd = &cobra.Command{
 			if err := git.Commit(commitMsg); err != nil {
 				fmt.Printf("Git commit failed:%s\n", err)
 			}
-			// TODO: security! sanitize for multiple %s or other specifiers
 		} else {
-			out, err := exec.Command("/bin/sh", "-c", fmt.Sprintf(cfg.CommitCommandFormat, commitMsg)).Output()
+			// TODO: security! think about how to sanitize better/use binary image of jj/git specifically
+			out, err := exec.Command("/bin/sh", "-c", strings.Replace(cfg.CommitCommandFormat, "%s", commitMsg, 1)).Output()
 			if err != nil {
 				fmt.Printf("Commit failed: %s\n", err)
 			} else {
