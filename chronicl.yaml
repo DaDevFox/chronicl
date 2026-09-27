@@ -1,24 +1,48 @@
 commit_types:
   - key: ICM
     description: initial commit
+    hint_format: (maybe) code created in {scope}, not split up for convenience/lost history; this code will {message}
   - key: FEAT
-    description: code changed; semver MAJOR
+    description: logic changes; semver MAJOR
+    hint_format: code changed in {scope} to {message}; a new capability usable externally
+  - key: IMP
+    description: logic changes; semver MINOR
+    hint_format: code changed in {scope} to {message}; a new capability usable internally OR improved capability used externally
+  - key: DEL
+    description: logic changes; semver MINOR
+    hint_format: code changed to remove {message}, a former capability
   - key: FIX
-    description: code changed; semver PATCH
-  - key: REF
-    description: no code changes; refactorings performed
+    description: logic changes; semver PATCH
+    hint_format: "code changed in {scope}:"
   - key: CFG
-    description: code changed; not semver MAJOR or MINOR-worthy
+    description: logic changes; not semver MAJOR, MINOR, or PATCH-worthy (i.e. doesn't bump version)
+    hint_format: "I adjusted parameters/data in this change, which consequently will {message}"
+  - key: REF
+    desscription: no logic changes; no semver bump
+    hint_format: this code will {message} to prepare for a future change
+  - key: DOC
+    description: no code changes; no semver bump
+    hint_format: "{message} is better understood by reading documentation introduced in this change"
 scopes:
-- key: hi
-  description: hello
+- key: BLD
+  description: build system files in the project
 - key: hello
   description: hehehi
 commit_annotations:
+  DEL:
+    - key: "!"
+      description: capability was usable externally
+      hint_format: capability was usable externally; override version bump to semver MAJOR
+    - key: "(none)"
+      description: no annotation
+      hint_format: capability was usable only internally
   FIX:
     - key: b
       description: describe what was wrong (the [b]ug)
+      hint_format: "before this, {scope} would {message}; a mistake/incorrect"
     - key: d
       description: describe what how it was fixed (what you [d]id)
+      hint_format: "to correct a bug, I {message}"
 pad_commit_type: true
+pad_scope: true
 pad_character: "_"
