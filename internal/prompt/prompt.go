@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/DaDevFox/hof"
 	"github.com/cqroot/prompt"
-	// "github.com/cqroot/prompt/choose"
-	// "github.com/cqroot/prompt/input"
 )
 
 func Check(err error) {
@@ -23,10 +22,10 @@ func Check(err error) {
 }
 
 // GetUserInput prompts for commit type, scope, and message
-func GetUserInput(commitTypes []config.CommitType, scopes []string) (string, string, string) {
+func GetUserInput(promptConfig *config.Config) (string, string, []string, string) {
 	display := make([]string, 0)
 	dispToKeyMap := make(map[string]string)
-	for _, obj := range commitTypes {
+	for _, obj := range promptConfig.CommitTypes {
 		str := obj.Key + " | " + obj.Description
 		display = append(display, str)
 		dispToKeyMap[str] = obj.Key
@@ -39,13 +38,17 @@ func GetUserInput(commitTypes []config.CommitType, scopes []string) (string, str
 	// commitType := goprompter.Choose("Select commit type:", commitTypes)
 	if commitType == "" {
 		fmt.Println("No commit type selected. Aborting.")
-		return "", "", ""
+		return "", "", nil, ""
 	}
 
 	var scope string
-	if len(scopes) > 0 {
-		scopes = append(scopes, "(custom)", "(none)")
-		scope, err = prompt.New().Ask("Select scope (optional):").Choose(scopes)
+	scopeKeys := hof.MapToArray(promptConfig.Scopes, func(s config.MessageFormatterConfig) string {
+		return s.Key
+	})
+
+	if len(scopeKeys) > 0 {
+		scopeKeys = append(scopeKeys, "(custom)", "(none)")
+		scope, err = prompt.New().Ask("Select scope (optional):").Choose(scopeKeys)
 		Check(err)
 		if scope == "(custom)" {
 			scope, err = prompt.New().Ask("Enter custom scope:").Input("blah blah")
@@ -57,14 +60,30 @@ func GetUserInput(commitTypes []config.CommitType, scopes []string) (string, str
 		scope, err = prompt.New().Ask("Enter scope (optional):").Input("blah blah")
 	}
 
-	message, err := prompt.New().Ask("Enter commit message").Input("bleh bleh bleh")
-	Check(err)
-	if message == "" {
-		fmt.Println("Empty commit message. Aborting.")
-		return "", "", ""
+	annotationsForCurrCommit := []string{}
+	annotationConfigsForCurrCommit, present := promptConfig.CommitTypeToAnnotations[commitType]
+	if present {
+		annotationsForCurrCommit, err = prompt.New().Ask("Annotate (optional):").MultiChoose(hof.MapToArray(annotationConfigsForCurrCommit, func(c config.MessageFormatterConfig) string {
+			return c.Key
+		}))
 	}
 
-	return commitType, scope, message
+	annotationsForCurrScope := []string{}
+	annotationConfigsForCurrScope, present := promptConfig.ScopeToAnnotations[commitType]
+	if present {
+		annotationsForCurrScope, err = prompt.New().Ask("Annotate (optional):").MultiChoose(hof.MapToArray(annotationConfigsForCurrScope, func(c config.MessageFormatterConfig) string {
+			return c.Key
+		}))
+	}
+
+	message, err := prompt.New().Ask("Enter commit message").Input("bleh bleh bleh")
+	Check(err)
+	if message == "" && promptConfig.AbortOnEmptyCommit {
+		fmt.Println("Empty commit message. Aborting.")
+		return "", "", nil, ""
+	}
+
+	return commitType, scope, append(annotationsForCurrCommit, annotationsForCurrScope...), message
 }
 
 func Confirm() bool {
