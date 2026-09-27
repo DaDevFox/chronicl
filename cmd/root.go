@@ -45,15 +45,15 @@ var RootCmd = &cobra.Command{
 			fmt.Println("Autocomitting... (turn this off in your chronicl config if undesired)")
 		}
 
-		if cfg.CommitCommandFormat != "" {
+		if cfg.CommitCommandFormat == "" {
 			if err := git.Commit(commitMsg); err != nil {
 				fmt.Printf("Git commit failed:%s\n", err)
 			}
 			// TODO: security! sanitize for multiple %s or other specifiers
 		} else {
-			out, err := exec.Command(fmt.Sprintf(cfg.CommitCommandFormat, messageText)).Output()
+			out, err := exec.Command("/bin/sh", "-c", fmt.Sprintf(cfg.CommitCommandFormat, messageText)).Output()
 			if err != nil {
-				fmt.Printf("Commit failed: %w\n", err)
+				fmt.Printf("Commit failed: %s\n", err)
 			} else {
 				fmt.Printf("success\n%s", out)
 			}

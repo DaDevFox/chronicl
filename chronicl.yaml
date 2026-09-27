@@ -18,16 +18,21 @@ commit_types:
     description: logic changes; not semver MAJOR, MINOR, or PATCH-worthy (i.e. doesn't bump version)
     hint_format: "I adjusted parameters/data in this change, which consequently will {message}"
   - key: REF
-    desscription: no logic changes; no semver bump
+    description: no logic changes; no semver bump
     hint_format: this code will {message} to prepare for a future change
   - key: DOC
     description: no code changes; no semver bump
     hint_format: "{message} is better understood by reading documentation introduced in this change"
+  - key: FMT
+    description: whitespace/fotmatting code changes only; no semver bump
+    hint_format: "{message} describes the files formatted, if {scope} isn't sufficient (can be 'all' otherwise)"
 scopes:
 - key: BLD
   description: build system files in the project
-- key: hello
-  description: hehehi
+- key: FRNT
+  description: frontend
+- key: BCK
+  description: backend
 commit_annotations:
   DEL:
     - key: "!"
@@ -46,3 +51,4 @@ commit_annotations:
 pad_commit_type: true
 pad_scope: true
 pad_character: "_"
+commit_command_format: "jj commit -m \"%s\""

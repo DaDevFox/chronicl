@@ -55,6 +55,8 @@ type commitForm struct {
 
 	result commitResult
 	err    error
+
+	width int
 }
 
 type commitResult struct {
@@ -67,9 +69,7 @@ type commitResult struct {
 
 var (
 	previewStyle = lipgloss.NewStyle().
-			Bold(true).
-			Padding(1, 1).
-			Border(lipgloss.RoundedBorder())
+			Padding(1, 1)
 
 	activeLabelStyle = lipgloss.NewStyle().
 				Bold(true)
@@ -119,6 +119,8 @@ func newCommitForm(cfg *config.Config) *commitForm {
 		scopeAnnotations:  choose.NewWithStrings([]string{}),
 
 		result: commitResult{},
+
+		width: 0,
 	}
 
 	// Determine whether scope stage should be shown at all.
@@ -166,6 +168,10 @@ func (m commitForm) Init() tea.Cmd {
 }
 
 func (m commitForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if sizeMsg, ok := msg.(tea.WindowSizeMsg); ok {
+		m.width = sizeMsg.Width
+	}
+
 	if key, ok := msg.(tea.KeyMsg); ok {
 		switch key.String() {
 		case "ctrl+c", "esc", "q":
@@ -332,7 +338,15 @@ func (m *commitForm) enterCurrentStage() tea.Cmd {
 func (m commitForm) View() string {
 	var b strings.Builder
 
-	b.WriteString(m.preview())
+	// Wrap the preview at the terminal width (minus padding/border).
+	previewWidth := m.width - 6 // border (2) + padding (4)
+	if previewWidth < 15 {
+		previewWidth = 15 // sane minimum
+	}
+
+	preview := previewStyle.Width(previewWidth).Render(m.preview())
+
+	b.WriteString(preview)
 	b.WriteString("\n\n")
 
 	switch m.stage {
@@ -443,7 +457,7 @@ func (m commitForm) preview() string {
 	retHelpers = hof.FilterToArray(retHelpers, func(s string) bool {
 		return strings.Trim(s, " ") != ""
 	})
-	return fmt.Sprintf("%s\n%s", ret, strings.Join(retHelpers, "\n"))
+	return fmt.Sprintf("%s\n\n%s", ret, strings.Join(retHelpers, "\n"))
 }
 
 func GetUserInputV2(promptConfig *config.Config) (
