@@ -51,7 +51,7 @@ var RootCmd = &cobra.Command{
 			}
 			// TODO: security! sanitize for multiple %s or other specifiers
 		} else {
-			out, err := exec.Command("/bin/sh", "-c", fmt.Sprintf(cfg.CommitCommandFormat, messageText)).Output()
+			out, err := exec.Command("/bin/sh", "-c", fmt.Sprintf(cfg.CommitCommandFormat, commitMsg)).Output()
 			if err != nil {
 				fmt.Printf("Commit failed: %s\n", err)
 			} else {
