@@ -26,13 +26,11 @@ const (
 	stageScopeAnnotations
 	stageMessage
 	stageDone
-	numStages
 )
 
 type commitForm struct {
-	stage   stage
-	history []stage
-	config  *config.Config
+	stage  stage
+	config *config.Config
 
 	commitType  *choose.Model
 	promptScope bool
@@ -146,20 +144,13 @@ func (m *commitForm) buildCommitAnnotations() {
 			}
 		},
 	))
-
-	// clear scope annotation value if no longer relavent
-	if !hof.Some(annotations, func(c config.MessageFormatterConfig) bool {
-		return c.Key == m.commitAnnotationsValue
-	}) {
-		m.commitAnnotationsValue = ""
-	}
 }
 
 // buildScopeAnnotations (re)builds the scope-annotation model based on the
 // currently selected commit type (scope annotations are keyed by commit type
 // in the config).
 func (m *commitForm) buildScopeAnnotations() {
-	annotations, prompt := m.config.ScopeToAnnotations[m.scopeValue]
+	annotations, prompt := m.config.ScopeToAnnotations[m.commitTypeValue]
 	m.promptScopeAnotations = prompt
 	m.scopeAnnotations = choose.New(hof.MapToArray(
 		annotations,
@@ -170,13 +161,6 @@ func (m *commitForm) buildScopeAnnotations() {
 			}
 		},
 	))
-
-	// clear scope annotation value if no longer relavent
-	if !hof.Some(annotations, func(c config.MessageFormatterConfig) bool {
-		return c.Key == m.scopeAnnotationsValue
-	}) {
-		m.scopeAnnotationsValue = ""
-	}
 }
 
 func (m commitForm) Init() tea.Cmd {
@@ -190,22 +174,11 @@ func (m commitForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	if key, ok := msg.(tea.KeyMsg); ok {
 		switch key.String() {
-		case "ctrl+c":
+		case "ctrl+c", "esc", "q":
 			m.err = tea.ErrProgramKilled
 			return m, tea.Quit
-		case "q":
-			if !m.hasActiveTextInput() {
-				return m, tea.Quit
-			}
 		case "backspace":
-			if !m.hasActiveTextInput() {
-				return m.back()
-			}
-		case "esc":
-			return m.back()
-		case "shift+enter", "ctrl+enter":
-			// TODO: confirm, skipping later optionals OR for control: skip the next optional
-			return m.confirm()
+
 		case "enter":
 			return m.confirm()
 		}
@@ -259,32 +232,7 @@ func (m commitForm) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-// TODO: make dynamic (esp with custom prompt)
-func (m commitForm) hasActiveTextInput() bool {
-	switch m.stage {
-	case stageCustomScope:
-		return true
-	case stageMessage:
-		return true
-	case stageCommitType, stageScope, stageCommitAnnotations, stageScopeAnnotations:
-		return false
-	}
-	return false
-}
-
-func (m commitForm) back() (tea.Model, tea.Cmd) {
-	// TODO: config option -- if current stage is first, quit when opt is enabled
-	if len(m.history) == 0 {
-		return m, nil // nothing to go back to
-	}
-
-	m.stage = m.history[len(m.history)-1]
-	m.history = m.history[:len(m.history)-1]
-	return m, m.enterCurrentStage()
-}
-
 func (m commitForm) confirm() (tea.Model, tea.Cmd) {
-	m.history = append(m.history, m.stage)
 	switch m.stage {
 	case stageCommitType:
 		m.commitTypeValue = m.commitType.Data()
@@ -295,6 +243,7 @@ func (m commitForm) confirm() (tea.Model, tea.Cmd) {
 
 		// Build annotation models now that we know the commit type.
 		m.buildCommitAnnotations()
+		m.buildScopeAnnotations()
 
 		if m.promptScope {
 			m.stage = stageScope
@@ -304,7 +253,6 @@ func (m commitForm) confirm() (tea.Model, tea.Cmd) {
 
 	case stageScope:
 		m.scopeValue = m.scope.Data()
-		m.buildScopeAnnotations()
 
 		switch m.scopeValue {
 		case "(custom)":
@@ -346,8 +294,6 @@ func (m commitForm) confirm() (tea.Model, tea.Cmd) {
 			message:              m.messageValue,
 		}
 
-		// technically unnecessary for our use case, just housekeeping
-		m.history = append(m.history, stageDone)
 		m.stage = stageDone
 		return m, tea.Quit
 	}

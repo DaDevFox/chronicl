@@ -79,6 +79,11 @@ func SerializeMessage(message Message, cfg *config.Config) string {
 		header = fmt.Sprintf("%s(%s)", header, scope)
 	}
 
+	message.Annotations = hof.FilterToArray(message.Annotations, func(s string) bool {
+		return strings.Trim(s, " ") != "(none)"
+	})
+
+	// TODO: filter annotations of the special "(none)" annotation
 	if len(message.Annotations) > 0 {
 		return fmt.Sprintf(
 			"%s: [%s] %s",
