@@ -28,7 +28,7 @@ var RootCmd = &cobra.Command{
 			return
 		}
 
-		commitType, scope, commitAnnotations, scopeAnotations, messageText := prompt.GetUserInputV2(cfg)
+		commitType, scope, commitAnnotations, scopeAnotations, messageText := prompt.GetUserInput(cfg)
 		if commitType == "" || messageText == "" {
 			fmt.Println("Commit aborted.")
 			return
@@ -40,15 +40,15 @@ var RootCmd = &cobra.Command{
 		}
 		fmt.Println("\nGenerated commit message:", commitMsg)
 
-		if !cfg.AutoCommit {
-			confirm := prompt.Confirm()
-			if !confirm {
-				fmt.Println("Commit aborted.")
-				return
-			}
-		} else {
-			fmt.Println("Autocomitting... (turn this off in your chronicl config if undesired)")
-		}
+		// if !cfg.AutoCommit {
+		// 	confirm := prompt.Confirm()
+		// 	if !confirm {
+		// 		fmt.Println("Commit aborted.")
+		// 		return
+		// 	}
+		// } else {
+		// 	fmt.Println("Autocomitting... (turn this off in your chronicl config if undesired)")
+		// }
 
 		if cfg.CommitCommandFormat == "" {
 			if err := git.Commit(commitMsg); err != nil {
